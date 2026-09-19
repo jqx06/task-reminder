@@ -1,0 +1,16 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.local.taskreminder'
+    compileSdk 37
+
+    defaultConfig {
+        applicationId 'com.local.taskreminder'
+        minSdk 24
+        targetSdk 37
+        versionCode 3
+        versionName '1.1.0'
+    }
+}
