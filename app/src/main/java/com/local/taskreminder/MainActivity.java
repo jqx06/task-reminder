@@ -47,24 +47,26 @@ public class MainActivity extends Activity {
         SharedPreferences preferences = getSharedPreferences("updates", MODE_PRIVATE);
         long now = System.currentTimeMillis();
         if (now - preferences.getLong("last_check", 0) < CHECK_INTERVAL_MS) return;
-        preferences.edit().putLong("last_check", now).apply();
         new Thread(() -> {
             HttpURLConnection connection = null;
             try {
                 connection = (HttpURLConnection) new URL(UPDATE_URL).openConnection();
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);
-                connection.setRequestProperty("Accept", "application/vnd.github+json");
                 connection.setRequestProperty("User-Agent", "TaskReminder-Android");
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     StringBuilder body = new StringBuilder();
                     String line;
                     while ((line = reader.readLine()) != null) body.append(line);
-                    JSONObject release = new JSONObject(body.toString());
-                    String tag = release.getString("tag_name").replaceFirst("^[vV]", "");
-                    String page = release.getString("html_url");
+                    JSONObject update = new JSONObject(body.toString());
+                    String version = update.getString("version");
+                    String downloadUrl = update.getString("download_url");
+                    String notes = update.optString("notes", "");
                     String current = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-                    if (isNewer(tag, current)) runOnUiThread(() -> showUpdate(tag, page));
+                    preferences.edit().putLong("last_check", System.currentTimeMillis()).apply();
+                    if (isNewer(version, current)) {
+                        runOnUiThread(() -> showUpdate(version, downloadUrl, notes));
+                    }
                 }
             } catch (Exception ignored) {
                 // Update checks must never interrupt the offline task list.
@@ -74,12 +76,16 @@ public class MainActivity extends Activity {
         }).start();
     }
 
-    private void showUpdate(String version, String page) {
+    private void showUpdate(String version, String downloadUrl, String notes) {
+        String message = notes.isEmpty()
+                ? "下载更新后确认安装，任务数据会保留。"
+                : notes + "\n\n下载更新后确认安装，任务数据会保留。";
         new AlertDialog.Builder(this)
                 .setTitle("发现新版本 " + version)
-                .setMessage("前往 GitHub 下载更新？任务数据仍保存在本机。")
+                .setMessage(message)
                 .setNegativeButton("稍后", null)
-                .setPositiveButton("查看更新", (dialog, which) -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(page))))
+                .setPositiveButton("下载更新", (dialog, which) ->
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))))
                 .show();
     }
 
