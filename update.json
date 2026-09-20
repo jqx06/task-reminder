@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
-  "download_url": "https://raw.githubusercontent.com/jqx06/task-reminder/main/task-reminder-1.1.0.apk",
-  "notes": "加入每日自动更新检查，并移除开源版中的个人默认任务。"
+  "version": "1.2.0",
+  "download_url": "https://raw.githubusercontent.com/jqx06/task-reminder/main/task-reminder-1.2.0.apk",
+  "notes": "修复周期任务完成后消失的问题，支持每天、每周、每月和每年重复，并修复应用内更新检查。"
 }
