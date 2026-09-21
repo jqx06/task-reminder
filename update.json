@@ -1,5 +1,5 @@
 {
-  "version": "1.5.0",
-  "download_url": "https://github.com/jqx06/task-reminder/releases/download/v1.5.0/task-reminder-1.5.0.apk",
-  "notes": "新增独立课表页面：按周查看周一至周日课程，支持上一周、下一周和回到本周；导入入口已集中到课表页。"
+  "version": "1.6.0",
+  "download_url": "https://github.com/jqx06/task-reminder/releases/download/v1.6.0/task-reminder-1.6.0.apk",
+  "notes": "课表导入现已支持单周、双周及混合周次格式，例如 1-15周(单)、2-16周(双)、2周,6-14周(双),16-17周。"
 }
