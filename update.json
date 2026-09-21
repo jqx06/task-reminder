@@ -1,5 +1,5 @@
 {
-  "version": "1.7.0",
-  "download_url": "https://github.com/jqx06/task-reminder/releases/download/v1.7.0/task-reminder-1.7.0.apk",
-  "notes": "课表已重做为节次时间网格：显示第1至12节上下课时间，课程按节次和时长定位；课程本身不再进入提醒、今天、本周或全部事项。"
+  "version": "1.8.0",
+  "download_url": "https://github.com/jqx06/task-reminder/releases/download/v1.8.0/task-reminder-1.8.0.apk",
+  "notes": "课表改为紧凑大节布局：1–2、3–4、5–6、7–8、9–10节两两合并；仅在有课时显示11–12节；整体尺寸与填充缩小，课程卡不显示老师。"
 }
