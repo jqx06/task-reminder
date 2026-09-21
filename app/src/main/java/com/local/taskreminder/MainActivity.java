@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -31,10 +32,11 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
         settings.setAllowFileAccess(true);
+        webView.addJavascriptInterface(new UpdateBridge(), "AndroidUpdates");
         webView.setWebViewClient(new WebViewClient());
         setContentView(webView);
         webView.loadUrl("file:///android_asset/index.html");
-        checkForUpdates();
+        checkForUpdates(false);
     }
 
     @Override
@@ -43,16 +45,25 @@ public class MainActivity extends Activity {
         else super.onBackPressed();
     }
 
-    private void checkForUpdates() {
+    private final class UpdateBridge {
+        @JavascriptInterface
+        public void check() {
+            checkForUpdates(true);
+        }
+    }
+
+    private void checkForUpdates(boolean force) {
         SharedPreferences preferences = getSharedPreferences("updates", MODE_PRIVATE);
         long now = System.currentTimeMillis();
-        if (now - preferences.getLong("last_check", 0) < CHECK_INTERVAL_MS) return;
+        if (!force && now - preferences.getLong("last_check", 0) < CHECK_INTERVAL_MS) return;
         new Thread(() -> {
             HttpURLConnection connection = null;
             try {
-                connection = (HttpURLConnection) new URL(UPDATE_URL).openConnection();
+                String url = force ? UPDATE_URL + "?t=" + System.currentTimeMillis() : UPDATE_URL;
+                connection = (HttpURLConnection) new URL(url).openConnection();
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);
+                connection.setUseCaches(false);
                 connection.setRequestProperty("User-Agent", "TaskReminder-Android");
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     StringBuilder body = new StringBuilder();
@@ -66,10 +77,12 @@ public class MainActivity extends Activity {
                     preferences.edit().putLong("last_check", System.currentTimeMillis()).apply();
                     if (isNewer(version, current)) {
                         runOnUiThread(() -> showUpdate(version, downloadUrl, notes));
+                    } else if (force) {
+                        runOnUiThread(() -> showStatus("已是最新版本", "当前版本 " + current));
                     }
                 }
             } catch (Exception ignored) {
-                // Update checks must never interrupt the offline task list.
+                if (force) runOnUiThread(() -> showStatus("检查失败", "请检查网络后重试。"));
             } finally {
                 if (connection != null) connection.disconnect();
             }
@@ -86,6 +99,14 @@ public class MainActivity extends Activity {
                 .setNegativeButton("稍后", null)
                 .setPositiveButton("下载更新", (dialog, which) ->
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))))
+                .show();
+    }
+
+    private void showStatus(String title, String message) {
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("确定", null)
                 .show();
     }
 
