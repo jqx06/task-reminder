@@ -10,10 +10,16 @@
 - 完成记录、恢复和永久删除
 - 数据只保存在设备本地
 - 每 24 小时自动检查新版 APK，也可在首页主动检查
+- 从 `.xls` / `.xlsx` 导入课表，自动生成课程待办
+- 大学物理课程自动提前一周生成 MOOC 学习任务
+
+## 导入课表
+
+在首页点击“导入课表”，选择 Excel 文件，输入本学期第一周周一的日期并确认。应用只生成尚未结束的课程，重复导入会自动跳过已有事项；课表文件仅在手机本地解析。
 
 ## 安装
 
-打开 [Releases](https://github.com/jqx06/task-reminder/releases/latest)，下载 `task-reminder-1.3.0.apk`。首次安装可能需要允许浏览器安装未知来源应用。
+打开 [Releases](https://github.com/jqx06/task-reminder/releases/latest)，下载 `task-reminder-1.4.0.apk`。首次安装可能需要允许浏览器安装未知来源应用。
 
 覆盖安装新版可保留任务数据；不要先卸载旧版。
 
