@@ -1,5 +1,5 @@
 {
-  "version": "1.6.0",
-  "download_url": "https://github.com/jqx06/task-reminder/releases/download/v1.6.0/task-reminder-1.6.0.apk",
-  "notes": "课表导入现已支持单周、双周及混合周次格式，例如 1-15周(单)、2-16周(双)、2周,6-14周(双),16-17周。"
+  "version": "1.7.0",
+  "download_url": "https://github.com/jqx06/task-reminder/releases/download/v1.7.0/task-reminder-1.7.0.apk",
+  "notes": "课表已重做为节次时间网格：显示第1至12节上下课时间，课程按节次和时长定位；课程本身不再进入提醒、今天、本周或全部事项。"
 }
