@@ -1,5 +1,5 @@
 {
-  "version": "1.10.1",
-  "download_url": "https://github.com/jqx06/task-reminder/releases/download/v1.10.1/task-reminder-1.10.1.apk",
-  "notes": "在保持手机一屏显示完整7天的前提下，提高课程名、节次、教室、日期和时间轴字号，并略增大节行高。"
+  "version": "1.10.2",
+  "download_url": "https://github.com/jqx06/task-reminder/releases/download/v1.10.2/task-reminder-1.10.2.apk",
+  "notes": "修复已上过的课程不显示：现在导入并保留整个学期课程，不再过滤过去日期或已完成课程。升级后请重新导入一次原课表以补回此前跳过的课程，已有课程会自动去重。"
 }
