@@ -1,0 +1,106 @@
+name: Build and publish v1.9.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/release-1.9.0.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: 1.9.0
+      KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 || secrets.SIGNING_KEY_BASE64 || secrets.SIGNING_KEY }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || secrets.SIGNING_STORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS || secrets.SIGNING_KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || secrets.SIGNING_KEY_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.5.0"
+
+      - name: Check signing secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for n in KEYSTORE_B64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!n:-}" ]; then
+              echo "::error::Missing signing secret: $n"
+              exit 1
+            fi
+          done
+
+      - name: Decode signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > release.keystore
+          keytool -list -keystore release.keystore -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
+
+      - name: Build release APK
+        run: gradle assembleRelease --no-daemon
+
+      - name: Sign APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_TOOLS="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          UNSIGNED="app/build/outputs/apk/release/app-release-unsigned.apk"
+          ALIGNED="app/build/outputs/apk/release/app-release-aligned.apk"
+          OUT="task-reminder-$VERSION.apk"
+          "$BUILD_TOOLS/zipalign" -f 4 "$UNSIGNED" "$ALIGNED"
+          "$BUILD_TOOLS/apksigner" sign             --ks release.keystore             --ks-key-alias "$KEY_ALIAS"             --ks-pass "pass:$KEYSTORE_PASSWORD"             --key-pass "pass:$KEY_PASSWORD"             --out "$OUT" "$ALIGNED"
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$OUT"
+
+      - name: Verify certificate matches v1.8.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_TOOLS="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          curl -fL -o old.apk "https://github.com/jqx06/task-reminder/releases/download/v1.8.0/task-reminder-1.8.0.apk"
+          OLD_CERT="$("$BUILD_TOOLS/apksigner" verify --print-certs old.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1)"
+          NEW_CERT="$("$BUILD_TOOLS/apksigner" verify --print-certs "task-reminder-$VERSION.apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1)"
+          echo "Old certificate: $OLD_CERT"
+          echo "New certificate: $NEW_CERT"
+          test -n "$OLD_CERT"
+          test "$OLD_CERT" = "$NEW_CERT" || { echo "::error::Signing certificate does not match v1.8.0"; exit 1; }
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create "v$VERSION" "task-reminder-$VERSION.apk"             --target "$GITHUB_SHA"             --title "v$VERSION · 课表与提醒修复"             --notes "课表字体与布局放大；课程卡不再重复显示时间。恢复长期任务轮换提醒；修复大学物理实验被误判为大学物理并提前生成 MOOC 的问题；升级后自动清理误生成的实验 MOOC 事项。"
+
+      - name: Update manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > update.json <<'JSON'
+          {
+            "version": "1.9.0",
+            "download_url": "https://github.com/jqx06/task-reminder/releases/download/v1.9.0/task-reminder-1.9.0.apk",
+            "notes": "课表字体与布局放大，课程卡不再重复显示时间；恢复长期任务轮换提醒；修复大学物理实验误生成 MOOC，并自动清理此前误生成的实验 MOOC 事项。"
+          }
+          JSON
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add update.json
+          git commit -m "Publish v1.9.0 update prompt"
+          git push origin main
