@@ -1,5 +1,5 @@
 {
-  "version": "1.9.0",
-  "download_url": "https://github.com/jqx06/task-reminder/releases/download/v1.9.0/task-reminder-1.9.0.apk",
-  "notes": "优化紧凑课表可读性；恢复长期事项轮换提醒；大学物理实验不再错误生成 MOOC，并自动清理此前误生成的相关记录。"
+  "version": "1.10.0",
+  "download_url": "https://github.com/jqx06/task-reminder/releases/download/v1.10.0/task-reminder-1.10.0.apk",
+  "notes": "移动端课表现在一屏显示时间轴和周一至周日完整7天，不再横向滚动；课程卡、间距和文字已针对窄列重新适配。"
 }
