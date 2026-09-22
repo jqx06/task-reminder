@@ -20,7 +20,7 @@
 
 ## 安装
 
-打开 [Releases](https://github.com/jqx06/task-reminder/releases/latest)，下载 `task-reminder-1.5.0.apk`。首次安装可能需要允许浏览器安装未知来源应用。
+打开 [Releases](https://github.com/jqx06/task-reminder/releases/latest)，下载 `task-reminder-1.9.0.apk`。首次安装可能需要允许浏览器安装未知来源应用。
 
 覆盖安装新版可保留任务数据；不要先卸载旧版。
 
