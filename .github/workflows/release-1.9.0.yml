@@ -29,11 +29,6 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - uses: android-actions/setup-android@v3
-
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "9.5.0"
 
       - name: Check signing secrets
         shell: bash
@@ -54,7 +49,14 @@ jobs:
           keytool -list -keystore release.keystore -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
 
       - name: Build release APK
-        run: gradle assembleRelease --no-daemon
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37" "build-tools;37.0.0" >/dev/null
+          curl -fsSL https://services.gradle.org/distributions/gradle-9.5-bin.zip -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          /tmp/gradle-9.5/bin/gradle assembleRelease --no-daemon
 
       - name: Sign APK
         shell: bash
